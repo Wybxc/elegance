@@ -72,7 +72,7 @@ fn main() -> io::Result<()> {
 
     let mut printer = Printer::new(Io(io::stdout()), 40);
     obj.print(&mut printer)?;
-    printer.scan_eof();
+    printer.finish()?;
 
     Ok(())
 }

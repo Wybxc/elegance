@@ -1,4 +1,7 @@
-//! cite: Linear, bounded, functional pretty-printing
+//! The core implementation of the printer.
+//! 
+//! The algorithm is mostly based on the Haskell implementation in the paper 
+//! "Linear, bounded, functional pretty-printing" by O. Chitil.
 
 use std::{
     borrow::Cow,
@@ -52,6 +55,8 @@ struct OutGroup<'a> {
     outs: Vec<Out<'a>>,
 }
 
+/// The `Printer` is a pretty printing engine. It takes a sequence of layout elements and
+/// produces a pretty printed representation of the elements.
 pub struct Printer<'a, R: Render = String> {
     renderer: R,
     width: Width,
@@ -63,23 +68,49 @@ pub struct Printer<'a, R: Render = String> {
 }
 
 impl<'a, R: Render> Printer<'a, R> {
+    /// Create a new printer.
+    ///
+    /// # Panics
+    ///
+    /// If the width is not between 1 and 65536.
     pub fn new(renderer: R, width: usize) -> Self {
-        let width = width.try_into().unwrap();
-        Self {
+        assert!(
+            width > 0 && width <= Self::MAX_WIDTH,
+            "the width must be between 1 and {}",
+            Self::MAX_WIDTH
+        );
+        let width = Width(width.try_into().unwrap());
+        let mut pp = Self {
             renderer,
-            width: Width(width),
+            width,
             position: Position(0),
-            remaining: Width(width),
+            remaining: width,
             indent: vec![0],
             pending_indent: 0,
             dq: VecDeque::new(),
-        }
+        };
+        pp.scan_begin(0);
+        pp
     }
 
+    /// Maximum line width.
+    pub const MAX_WIDTH: usize = 65536;
+
+    /// Write a text element.
     pub fn scan_text(&mut self, text: Cow<'a, str>) -> Result<(), R::Error> {
         self.scan(text.len(), Out::Text(text))
     }
 
+    /// Write a break element.
+    ///
+    /// A break is `size` spaces if there is enough space, or a new line if not.
+    ///
+    /// After line break, the indent is increased by `indent`. The value can be
+    /// negative, in which case the indent is decreased.
+    ///
+    /// # Panics
+    ///
+    /// If the total indent is negative.
     pub fn scan_break(&mut self, size: usize, indent: isize) -> Result<(), R::Error> {
         let indent = (self.indent() + indent)
             .try_into()
@@ -87,12 +118,14 @@ impl<'a, R: Render> Printer<'a, R> {
         self.scan(size, Out::Break { size, indent })
     }
 
+    /// Begin a group.
     pub fn scan_begin(&mut self, indent: isize) {
         self.indent.push(self.indent() + indent);
         self.dq
             .push_back((self.position, OutGroup { outs: vec![] }));
     }
 
+    /// End a group.
     pub fn scan_end(&mut self) -> Result<(), R::Error> {
         self.indent.pop();
         if let Some((s, grp1)) = self.dq.pop_back() {
@@ -108,11 +141,15 @@ impl<'a, R: Render> Printer<'a, R> {
         Ok(())
     }
 
-    pub fn scan_eof(self) -> R {
-        if !self.dq.is_empty() {
-            panic!("unmatched begin");
-        }
-        self.renderer
+    /// Finish the printer and return the result.
+    ///
+    /// # Panics
+    ///
+    /// If there is an unclosed group.
+    pub fn finish(mut self) -> Result<R, R::Error> {
+        self.scan_end()?;
+        assert!(self.dq.is_empty(), "unclosed group");
+        Ok(self.renderer)
     }
 
     fn indent(&self) -> isize {

@@ -1,5 +1,8 @@
+//! Renders text.
+
 use std::{ffi::OsString, io, iter};
 
+/// An output sink for printer.
 pub trait Render {
     type Error;
 

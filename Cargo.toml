@@ -9,4 +9,10 @@ repository = "https://github.com/Wybxc/elegance"
 [dependencies]
 
 [dev-dependencies]
+criterion = "0.5.1"
 indoc = "2.0.5"
+serde_json = "1.0.121"
+
+[[bench]]
+name = "json"
+harness = false

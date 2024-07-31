@@ -18,7 +18,7 @@ impl<'a, R: Render> Printer<'a, R> {
     }
 
     /// Write a hard line break.
-    /// 
+    ///
     /// ```
     /// # use elegance::Printer;
     /// let mut pp = Printer::new(String::new(), 40);
@@ -33,24 +33,8 @@ impl<'a, R: Render> Printer<'a, R> {
         self.scan_break(Self::MAX_WIDTH, 0)
     }
 
-    /// Write a soft line break.
-    /// 
-    /// ```
-    /// # use elegance::Printer;
-    /// let mut pp = Printer::new(String::new(), 40);
-    /// pp.text("Hello,")?;
-    /// pp.soft_break()?;
-    /// pp.text("world!")?;
-    /// assert_eq!(pp.finish()?, "Hello, world!");
-    /// # Ok::<(), ()>(())
-    /// ```
-    #[inline]
-    pub fn soft_break(&mut self) -> Result<(), R::Error> {
-        self.scan_break(1, 0)
-    }
-
     /// Write a zero-width line break.
-    /// 
+    ///
     /// ```
     /// # use elegance::Printer;
     /// let mut pp = Printer::new(String::new(), 40);
@@ -65,8 +49,40 @@ impl<'a, R: Render> Printer<'a, R> {
         self.scan_break(0, 0)
     }
 
+    /// Write a number of spaces.
+    ///
+    /// ```
+    /// # use elegance::Printer;
+    /// let mut pp = Printer::new(String::new(), 40);
+    /// pp.text("Hello,")?;
+    /// pp.spaces(2)?;
+    /// pp.text("world!")?;
+    /// assert_eq!(pp.finish()?, "Hello,  world!");
+    /// # Ok::<(), ()>(())
+    /// ```
+    #[inline]
+    pub fn spaces(&mut self, n: usize) -> Result<(), R::Error> {
+        self.scan_break(n, 0)
+    }
+
+    /// Write a space (soft line break).
+    ///
+    /// ```
+    /// # use elegance::Printer;
+    /// let mut pp = Printer::new(String::new(), 40);
+    /// pp.text("Hello,")?;
+    /// pp.space()?;
+    /// pp.text("world!")?;
+    /// assert_eq!(pp.finish()?, "Hello, world!");
+    /// # Ok::<(), ()>(())
+    /// ```
+    #[inline]
+    pub fn space(&mut self) -> Result<(), R::Error> {
+        self.scan_break(1, 0)
+    }
+
     /// Write a group.
-    /// 
+    ///
     /// ```
     /// # use elegance::Printer;
     /// let mut pp = Printer::new(String::new(), 40);

@@ -14,7 +14,7 @@ Add some text and spaces:
 
 ```rust,ignore
 pp.text("Hello, world!")?;
-pp.soft_break()?; // breakable space
+pp.space()?; // breakable space
 pp.hard_break()?; // forced line break
 ```
 
@@ -23,7 +23,7 @@ Enclose structures in groups:
 ```rust,ignore
 pp.group(2, |pp| {
     pp.text("foo")?;
-    pp.soft_break()?;
+    pp.space()?;
     pp.text("bar")
 })?;
 ```
@@ -63,7 +63,7 @@ impl SExp {
                 if let Some((first, rest)) = xs.split_first() {
                     first.print(pp)?;
                     for v in rest {
-                        pp.soft_break()?;
+                        pp.space()?;
                         v.print(pp)?;
                     }
                 }

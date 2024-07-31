@@ -19,7 +19,7 @@ impl SExp {
                 if let Some((first, rest)) = xs.split_first() {
                     first.print(pp)?;
                     for v in rest {
-                        pp.soft_break()?;
+                        pp.space()?;
                         v.print(pp)?;
                     }
                 }

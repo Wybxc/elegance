@@ -29,7 +29,7 @@ impl Value {
                     first.print(pp)?;
                     for v in rest {
                         pp.text(",")?;
-                        pp.soft_break()?;
+                        pp.space()?;
                         v.print(pp)?;
                     }
                     pp.scan_break(0, -2)?;
@@ -45,7 +45,7 @@ impl Value {
                     v.print(pp)?;
                     for (k, v) in obj {
                         pp.text(",")?;
-                        pp.soft_break()?;
+                        pp.space()?;
                         pp.text(format!("\"{}\": ", k))?;
                         v.print(pp)?;
                     }

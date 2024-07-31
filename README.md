@@ -1,5 +1,8 @@
 # Elegance
 
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Wybxc/elegance/test.yml)](https://github.com/Wybxc/elegance/actions/workflows/test.yml)
+[![docs.rs](https://img.shields.io/docsrs/elegance)](https://docs.rs/elegance)
+
 A pretty-printing library for Rust with a focus on speed and compactness.
 
 ## Usage

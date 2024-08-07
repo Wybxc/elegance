@@ -29,26 +29,31 @@ impl Sub<Position> for Position {
     }
 }
 
-enum Out<'a> {
+enum Token<'a> {
     Text(Cow<'a, str>),
     Break { indent: usize },
     Group(OutGroup<'a>),
 }
 
 struct OutGroup<'a> {
-    outs: Vec<(Out<'a>, usize)>,
+    tokens: Vec<(Token<'a>, usize)>,
 }
 
 /// The `Printer` is a pretty printing engine. It takes a sequence of layout elements and
 /// produces a pretty printed representation of the elements.
 pub struct Printer<'a, R: Render = String> {
-    renderer: R,
+    // common
     line_width: usize,
+
+    // scanner
     position: Position,
-    remaining: usize,
     indent: Vec<isize>,
-    pending_indent: usize,
     dq: VecDeque<(Position, OutGroup<'a>)>,
+
+    // renderer
+    renderer: R,
+    remaining: usize,
+    pending_indent: usize,
 }
 
 impl<'a, R: Render> Printer<'a, R> {
@@ -81,7 +86,7 @@ impl<'a, R: Render> Printer<'a, R> {
 
     /// Write a text element.
     pub fn scan_text(&mut self, text: Cow<'a, str>, width: usize) -> Result<(), R::Error> {
-        self.scan(width, Out::Text(text))
+        self.scan(width, Token::Text(text))
     }
 
     /// Write a break element.
@@ -98,7 +103,7 @@ impl<'a, R: Render> Printer<'a, R> {
         let indent = (self.indent() + indent)
             .try_into()
             .expect("indent must >= 0");
-        self.scan(size, Out::Break { indent })
+        self.scan(size, Token::Break { indent })
     }
 
     /// Begin a group.
@@ -107,7 +112,7 @@ impl<'a, R: Render> Printer<'a, R> {
         self.dq.push_back((
             self.position,
             OutGroup {
-                outs: Vec::with_capacity(12),
+                tokens: Vec::with_capacity(12),
             },
         ));
     }
@@ -117,9 +122,9 @@ impl<'a, R: Render> Printer<'a, R> {
         self.indent.pop();
         if let Some((s, grp1)) = self.dq.pop_back() {
             if let Some((_, grp2)) = self.dq.back_mut() {
-                grp2.outs.push((Out::Group(grp1), self.position - s));
+                grp2.tokens.push((Token::Group(grp1), self.position - s));
             } else {
-                self.print_group(grp1, true)?;
+                self.render_group(grp1, true)?;
             }
         }
         Ok(())
@@ -140,13 +145,13 @@ impl<'a, R: Render> Printer<'a, R> {
         *self.indent.last().unwrap()
     }
 
-    fn scan(&mut self, width: usize, out: Out<'a>) -> Result<(), R::Error> {
+    fn scan(&mut self, width: usize, out: Token<'a>) -> Result<(), R::Error> {
         self.position += width;
         if let Some((_, grp)) = self.dq.back_mut() {
-            grp.outs.push((out, width));
+            grp.tokens.push((out, width));
             self.prune()?;
         } else {
-            self.print(out, width, false)?;
+            self.render_token(out, width, false)?;
         }
         Ok(())
     }
@@ -158,21 +163,26 @@ impl<'a, R: Render> Printer<'a, R> {
             .is_some_and(|&(s, _)| self.position - s > self.remaining)
         {
             let (_, grp) = self.dq.pop_front().unwrap();
-            self.print_group(grp, false)?;
+            self.render_group(grp, false)?;
         }
         Ok(())
     }
 
-    fn print_group(&mut self, group: OutGroup<'a>, horizontal: bool) -> Result<(), R::Error> {
-        for (out, width) in group.outs {
-            self.print(out, width, horizontal)?;
+    fn render_group(&mut self, group: OutGroup<'a>, horizontal: bool) -> Result<(), R::Error> {
+        for (out, width) in group.tokens {
+            self.render_token(out, width, horizontal)?;
         }
         Ok(())
     }
 
-    fn print(&mut self, out: Out<'a>, width: usize, horizontal: bool) -> Result<(), R::Error> {
-        match out {
-            Out::Text(text) => {
+    fn render_token(
+        &mut self,
+        token: Token<'a>,
+        width: usize,
+        horizontal: bool,
+    ) -> Result<(), R::Error> {
+        match token {
+            Token::Text(text) => {
                 if self.pending_indent > 0 {
                     self.renderer.write_spaces(self.pending_indent)?;
                     self.pending_indent = 0;
@@ -180,7 +190,7 @@ impl<'a, R: Render> Printer<'a, R> {
                 self.renderer.write_str(&text)?;
                 self.remaining = self.remaining.saturating_sub(width);
             }
-            Out::Break { indent } => {
+            Token::Break { indent } => {
                 if horizontal {
                     self.renderer.write_spaces(width)?;
                     self.remaining = self.remaining.saturating_sub(width);
@@ -190,9 +200,9 @@ impl<'a, R: Render> Printer<'a, R> {
                     self.remaining = self.line_width.saturating_sub(indent);
                 }
             }
-            Out::Group(out) => {
+            Token::Group(out) => {
                 let horizontal = self.remaining >= width;
-                self.print_group(out, horizontal)?;
+                self.render_group(out, horizontal)?;
             }
         }
         Ok(())

@@ -14,7 +14,9 @@ impl<'a, R: Render> Printer<'a, R> {
     /// ```
     #[inline]
     pub fn text(&mut self, text: impl Into<Cow<'a, str>>) -> Result<(), R::Error> {
-        self.scan_text(text.into())
+        let text = text.into();
+        let width = text.len();
+        self.scan_text(text, width)
     }
 
     /// Write a hard line break.

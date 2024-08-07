@@ -122,7 +122,7 @@ impl<'a, R: Render> Printer<'a, R> {
     pub fn scan_begin(&mut self, indent: isize) {
         self.indent.push(self.indent() + indent);
         self.dq
-            .push_back((self.position, OutGroup { outs: vec![] }));
+            .push_back((self.position, OutGroup { outs: Vec::with_capacity(12) }));
     }
 
     /// End a group.

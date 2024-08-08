@@ -1,5 +1,6 @@
 use elegance::Printer;
 
+#[track_caller]
 fn test_printer(f: impl FnOnce(&mut Printer) -> Result<(), ()>, expected: &str) {
     let mut pp = Printer::new(String::new(), 40);
     f(&mut pp).unwrap();

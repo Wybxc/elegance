@@ -39,6 +39,12 @@ struct OutGroup<'a> {
     tokens: Vec<(Token<'a>, usize)>,
 }
 
+#[derive(Clone, Copy)]
+enum RenderFrame {
+    Fits,
+    Break { consistent: bool },
+}
+
 /// The `Printer` is a pretty printing engine. It takes a sequence of layout elements and
 /// produces a pretty printed representation of the elements.
 pub struct Printer<'a, R: Render = String> {
@@ -53,6 +59,7 @@ pub struct Printer<'a, R: Render = String> {
     // renderer
     renderer: R,
     remaining: usize,
+    render_stack: Vec<RenderFrame>,
     pending_indent: usize,
 }
 
@@ -69,13 +76,14 @@ impl<'a, R: Render> Printer<'a, R> {
             Self::MAX_WIDTH
         );
         let mut pp = Self {
-            renderer,
             line_width,
             position: Position(0),
-            remaining: line_width,
             indent: vec![0],
-            pending_indent: 0,
             dq: VecDeque::new(),
+            renderer,
+            remaining: line_width,
+            render_stack: Vec::new(),
+            pending_indent: 0,
         };
         pp.scan_begin(0);
         pp
@@ -121,11 +129,15 @@ impl<'a, R: Render> Printer<'a, R> {
     pub fn scan_end(&mut self) -> Result<(), R::Error> {
         self.indent.pop();
         if let Some((s, grp1)) = self.dq.pop_back() {
+            let width = self.position - s;
             if let Some((_, grp2)) = self.dq.back_mut() {
-                grp2.tokens.push((Token::Group(grp1), self.position - s));
+                grp2.tokens.push((Token::Group(grp1), width));
             } else {
-                self.render_group(grp1, true)?;
+                self.render_begin(grp1, width)?;
+                self.render_end()?;
             }
+        } else {
+            self.render_end()?;
         }
         Ok(())
     }
@@ -151,7 +163,7 @@ impl<'a, R: Render> Printer<'a, R> {
             grp.tokens.push((out, width));
             self.prune()?;
         } else {
-            self.render_token(out, width, false)?;
+            self.render_token(out, width)?;
         }
         Ok(())
     }
@@ -163,48 +175,67 @@ impl<'a, R: Render> Printer<'a, R> {
             .is_some_and(|&(s, _)| self.position - s > self.remaining)
         {
             let (_, grp) = self.dq.pop_front().unwrap();
-            self.render_group(grp, false)?;
+            self.render_begin(grp, Self::MAX_WIDTH)?;
         }
         Ok(())
     }
 
-    fn render_group(&mut self, group: OutGroup<'a>, horizontal: bool) -> Result<(), R::Error> {
-        for (out, width) in group.tokens {
-            self.render_token(out, width, horizontal)?;
-        }
-        Ok(())
-    }
-
-    fn render_token(
-        &mut self,
-        token: Token<'a>,
-        width: usize,
-        horizontal: bool,
-    ) -> Result<(), R::Error> {
+    fn render_token(&mut self, token: Token<'a>, width: usize) -> Result<(), R::Error> {
         match token {
-            Token::Text(text) => {
-                if self.pending_indent > 0 {
-                    self.renderer.write_spaces(self.pending_indent)?;
-                    self.pending_indent = 0;
-                }
-                self.renderer.write_str(&text)?;
-                self.remaining = self.remaining.saturating_sub(width);
-            }
-            Token::Break { indent } => {
-                if horizontal {
-                    self.renderer.write_spaces(width)?;
-                    self.remaining = self.remaining.saturating_sub(width);
-                } else {
-                    self.renderer.write_str("\n")?;
-                    self.pending_indent = indent;
-                    self.remaining = self.line_width.saturating_sub(indent);
-                }
-            }
-            Token::Group(out) => {
-                let horizontal = self.remaining >= width;
-                self.render_group(out, horizontal)?;
+            Token::Text(text) => self.render_text(text, width),
+            Token::Break { indent } => self.render_break(indent, width),
+            Token::Group(group) => {
+                self.render_begin(group, width)?;
+                self.render_end()
             }
         }
+    }
+
+    fn render_text(&mut self, text: Cow<'a, str>, width: usize) -> Result<(), R::Error> {
+        if self.pending_indent > 0 {
+            self.renderer.write_spaces(self.pending_indent)?;
+            self.pending_indent = 0;
+        }
+        self.renderer.write_str(&text)?;
+        self.remaining = self.remaining.saturating_sub(width);
+        Ok(())
+    }
+
+    fn render_break(&mut self, indent: usize, width: usize) -> Result<(), R::Error> {
+        let frame = self
+            .render_stack
+            .last()
+            .copied()
+            .unwrap_or(RenderFrame::Break { consistent: false });
+        let fits = match frame {
+            RenderFrame::Fits => true,
+            RenderFrame::Break { consistent, .. } => !consistent && width <= self.remaining,
+        };
+        if fits {
+            self.renderer.write_spaces(width)?;
+            self.remaining = self.remaining.saturating_sub(width);
+        } else {
+            self.renderer.write_str("\n")?;
+            self.pending_indent = indent;
+            self.remaining = self.line_width.saturating_sub(indent);
+        }
+        Ok(())
+    }
+
+    fn render_begin(&mut self, group: OutGroup<'a>, width: usize) -> Result<(), R::Error> {
+        self.render_stack.push(if width <= self.remaining {
+            RenderFrame::Fits
+        } else {
+            RenderFrame::Break { consistent: true }
+        });
+        for (out, width) in group.tokens {
+            self.render_token(out, width)?;
+        }
+        Ok(())
+    }
+
+    fn render_end(&mut self) -> Result<(), R::Error> {
+        self.render_stack.pop();
         Ok(())
     }
 }

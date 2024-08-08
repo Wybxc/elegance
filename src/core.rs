@@ -37,6 +37,7 @@ enum Token<'a> {
 
 struct OutGroup<'a> {
     tokens: Vec<(Token<'a>, usize)>,
+    consistent: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -85,7 +86,7 @@ impl<'a, R: Render> Printer<'a, R> {
             render_stack: Vec::new(),
             pending_indent: 0,
         };
-        pp.scan_begin(0);
+        pp.scan_begin(0, false);
         pp
     }
 
@@ -115,12 +116,13 @@ impl<'a, R: Render> Printer<'a, R> {
     }
 
     /// Begin a group.
-    pub fn scan_begin(&mut self, indent: isize) {
+    pub fn scan_begin(&mut self, indent: isize, consistent: bool) {
         self.indent.push(self.indent() + indent);
         self.dq.push_back((
             self.position,
             OutGroup {
                 tokens: Vec::with_capacity(12),
+                consistent,
             },
         ));
     }
@@ -209,7 +211,7 @@ impl<'a, R: Render> Printer<'a, R> {
             .unwrap_or(RenderFrame::Break { consistent: false });
         let fits = match frame {
             RenderFrame::Fits => true,
-            RenderFrame::Break { consistent, .. } => !consistent && width <= self.remaining,
+            RenderFrame::Break { consistent, .. } => !consistent && width < self.remaining,
         };
         if fits {
             self.renderer.write_spaces(width)?;
@@ -226,7 +228,9 @@ impl<'a, R: Render> Printer<'a, R> {
         self.render_stack.push(if width <= self.remaining {
             RenderFrame::Fits
         } else {
-            RenderFrame::Break { consistent: true }
+            RenderFrame::Break {
+                consistent: group.consistent,
+            }
         });
         for (out, width) in group.tokens {
             self.render_token(out, width)?;

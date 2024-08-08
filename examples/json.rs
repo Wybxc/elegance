@@ -22,7 +22,7 @@ impl Value {
             Value::Bool(false) => pp.text("false")?,
             Value::Number(x) => pp.text(format!("{}", x))?,
             Value::String(s) => pp.text(format!("\"{}\"", s))?,
-            Value::Array(arr) => pp.group(2, |pp| {
+            Value::Array(arr) => pp.igroup(2, |pp| {
                 pp.text("[")?;
                 if let Some((first, rest)) = arr.split_first() {
                     pp.zero_break()?;
@@ -36,7 +36,7 @@ impl Value {
                 }
                 pp.text("]")
             })?,
-            Value::Object(obj) => pp.group(2, |pp| {
+            Value::Object(obj) => pp.cgroup(2, |pp| {
                 let mut obj = obj.iter();
                 pp.text("{")?;
                 if let Some((k, v)) = obj.next() {

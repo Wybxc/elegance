@@ -14,7 +14,7 @@ impl SExp {
     pub fn print<R: Render>(&self, pp: &mut Printer<R>) -> Result<(), R::Error> {
         match self {
             SExp::Atom(x) => pp.text(format!("{}", x))?,
-            SExp::List(xs) => pp.group(1, |pp| {
+            SExp::List(xs) => pp.cgroup(1, |pp| {
                 pp.text("(")?;
                 if let Some((first, rest)) = xs.split_first() {
                     first.print(pp)?;

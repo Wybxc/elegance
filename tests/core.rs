@@ -36,7 +36,7 @@ fn test_zero_break() {
 fn test_group_horizontal() {
     test_printer(
         |pp| {
-            pp.group(2, |pp| {
+            pp.cgroup(2, |pp| {
                 pp.text("Hello,")?;
                 pp.space()?;
                 pp.text("world!")
@@ -50,13 +50,35 @@ fn test_group_horizontal() {
 fn test_group_vertical() {
     test_printer(
         |pp| {
-            pp.group(2, |pp| {
+            pp.cgroup(2, |pp| {
                 pp.text("Hello,")?;
                 pp.hard_break()?;
                 pp.text("world!")
             })
         },
         "Hello,\n  world!",
+    );
+}
+
+#[test]
+fn test_igroup() {
+    test_printer(
+        |pp| {
+            pp.igroup(2, |pp| {
+                for _ in 0..40 {
+                    pp.text("x")?;
+                    pp.zero_break()?;
+                }
+                pp.text("x")?;
+                pp.space()?;
+                pp.cgroup(0, |pp| {
+                    pp.text("Hello,")?;
+                    pp.hard_break()?;
+                    pp.text("world!")
+                })
+            })
+        },
+        &("x".repeat(40) + "\n  x Hello,\n  world!"),
     );
 }
 
@@ -76,10 +98,12 @@ fn test_text_overflow() {
 fn test_multiple_newlines() {
     test_printer(
         |pp| {
-            pp.zero_break()?;
-            pp.space()?;
-            pp.hard_break()?;
-            pp.hard_break()
+            pp.cgroup(0, |pp| {
+                pp.zero_break()?;
+                pp.space()?;
+                pp.hard_break()?;
+                pp.hard_break()
+            })
         },
         "\n\n\n\n",
     );
@@ -89,7 +113,7 @@ fn test_multiple_newlines() {
 fn test_break_indent() {
     test_printer(
         |pp| {
-            pp.group(2, |pp| {
+            pp.cgroup(2, |pp| {
                 pp.zero_break()?;
                 pp.text("Hello,")?;
                 pp.scan_break(40, 2)?;

@@ -11,14 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- cgroup and igroup
-- refactor rendering in Printer for improved line handling
-- text width
-- optimize speed
+- New `cgroup` and `igroup` functions
+- Improve new line handling in printer
 
 ### Other
 
-- *(ci)* setup release-plz
-- update dependencies
-- rename `Out` to `Token`
-- benchmarks
+- Update dependencies
+- Add benchmarks

@@ -29,7 +29,8 @@ impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
     /// # Ok::<(), ()>(())
     /// ```
     #[inline]
-    pub fn text_owned(&mut self, text: S) -> Result<(), R::Error> {
+    pub fn text_owned(&mut self, text: impl Into<S>) -> Result<(), R::Error> {
+        let text = text.into();
         let width = text.as_ref().len();
         self.scan_text(CowString::Owned(text), width)
     }

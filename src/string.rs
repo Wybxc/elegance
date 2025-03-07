@@ -1,5 +1,6 @@
 use std::ops::Deref;
 
+/// A borrowed or owned string.
 pub enum CowString<'a, T: AsRef<str> = String> {
     Borrowed(&'a str),
     Owned(T),

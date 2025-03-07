@@ -3,6 +3,7 @@
 pub mod core;
 pub mod helper;
 pub mod render;
+pub mod string;
 
 pub use core::Printer;
 pub use render::{Io, Render};

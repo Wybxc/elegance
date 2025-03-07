@@ -11,8 +11,8 @@ pub fn print_json<'a, R: Render>(json: &'a Value, pp: &mut Printer<'a, R>) -> Re
         Value::Null => pp.text("null")?,
         Value::Bool(true) => pp.text("true")?,
         Value::Bool(false) => pp.text("false")?,
-        Value::Number(n) => pp.text(n.to_string())?,
-        Value::String(s) => pp.text(escape_string(s))?,
+        Value::Number(n) => pp.text_owned(n.to_string())?,
+        Value::String(s) => pp.text_owned(escape_string(s))?,
         Value::Array(arr) => pp.igroup(2, |pp| {
             pp.text("[")?;
             if let Some((first, rest)) = arr.split_first() {
@@ -32,13 +32,13 @@ pub fn print_json<'a, R: Render>(json: &'a Value, pp: &mut Printer<'a, R>) -> Re
             pp.text("{")?;
             if let Some((k, v)) = obj.next() {
                 pp.zero_break()?;
-                pp.text(escape_string(k))?;
+                pp.text_owned(escape_string(k))?;
                 pp.text(": ")?;
                 print_json(v, pp)?;
                 for (k, v) in obj {
                     pp.text(",")?;
                     pp.space()?;
-                    pp.text(escape_string(k))?;
+                    pp.text_owned(escape_string(k))?;
                     pp.text(": ")?;
                     print_json(v, pp)?;
                 }

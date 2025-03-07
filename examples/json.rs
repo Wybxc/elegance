@@ -20,8 +20,8 @@ impl Value {
             Value::Null => pp.text("null")?,
             Value::Bool(true) => pp.text("true")?,
             Value::Bool(false) => pp.text("false")?,
-            Value::Number(x) => pp.text(format!("{}", x))?,
-            Value::String(s) => pp.text(format!("\"{}\"", s))?,
+            Value::Number(x) => pp.text_owned(format!("{}", x))?,
+            Value::String(s) => pp.text_owned(format!("\"{}\"", s))?,
             Value::Array(arr) => pp.igroup(2, |pp| {
                 pp.text("[")?;
                 if let Some((first, rest)) = arr.split_first() {
@@ -41,12 +41,12 @@ impl Value {
                 pp.text("{")?;
                 if let Some((k, v)) = obj.next() {
                     pp.zero_break()?;
-                    pp.text(format!("\"{}\": ", k))?;
+                    pp.text_owned(format!("\"{}\": ", k))?;
                     v.print(pp)?;
                     for (k, v) in obj {
                         pp.text(",")?;
                         pp.space()?;
-                        pp.text(format!("\"{}\": ", k))?;
+                        pp.text_owned(format!("\"{}\": ", k))?;
                         v.print(pp)?;
                     }
                     pp.scan_break(0, -2)?;

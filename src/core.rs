@@ -4,12 +4,11 @@
 //! "Linear, bounded, functional pretty-printing" by O. Chitil.
 
 use std::{
-    borrow::Cow,
     collections::VecDeque,
     ops::{AddAssign, Sub},
 };
 
-use crate::render::Render;
+use crate::{render::Render, string::CowString};
 
 #[derive(Clone, Copy)]
 struct Position(pub usize);
@@ -29,14 +28,14 @@ impl Sub<Position> for Position {
     }
 }
 
-enum Token<'a> {
-    Text(Cow<'a, str>),
+enum Token<'a, S: AsRef<str>> {
+    Text(CowString<'a, S>),
     Break { indent: usize },
-    Group(OutGroup<'a>),
+    Group(OutGroup<'a, S>),
 }
 
-struct OutGroup<'a> {
-    tokens: Vec<(Token<'a>, usize)>,
+struct OutGroup<'a, S: AsRef<str>> {
+    tokens: Vec<(Token<'a, S>, usize)>,
     consistent: bool,
 }
 
@@ -48,14 +47,14 @@ enum RenderFrame {
 
 /// The `Printer` is a pretty printing engine. It takes a sequence of layout elements and
 /// produces a pretty printed representation of the elements.
-pub struct Printer<'a, R: Render = String> {
+pub struct Printer<'a, R: Render = String, S: AsRef<str> = String> {
     // common
     line_width: usize,
 
     // scanner
     position: Position,
     indent: Vec<isize>,
-    dq: VecDeque<(Position, OutGroup<'a>)>,
+    dq: VecDeque<(Position, OutGroup<'a, S>)>,
 
     // renderer
     renderer: R,
@@ -64,13 +63,24 @@ pub struct Printer<'a, R: Render = String> {
     pending_indent: usize,
 }
 
-impl<'a, R: Render> Printer<'a, R> {
+impl<R: Render> Printer<'_, R> {
     /// Create a new printer.
     ///
     /// # Panics
     ///
     /// If line width is not between 1 and 65536.
     pub fn new(renderer: R, line_width: usize) -> Self {
+        Self::new_with(renderer, line_width)
+    }
+}
+
+impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
+    /// Create a new printer (with custom string type).
+    ///
+    /// # Panics
+    ///
+    /// If line width is not between 1 and 65536.
+    pub fn new_with(renderer: R, line_width: usize) -> Self {
         assert!(
             line_width > 0 && line_width <= Self::MAX_WIDTH,
             "line width must be between 1 and {}",
@@ -94,7 +104,7 @@ impl<'a, R: Render> Printer<'a, R> {
     pub const MAX_WIDTH: usize = 65536;
 
     /// Write a text element.
-    pub fn scan_text(&mut self, text: Cow<'a, str>, width: usize) -> Result<(), R::Error> {
+    pub fn scan_text(&mut self, text: CowString<'a, S>, width: usize) -> Result<(), R::Error> {
         self.scan(width, Token::Text(text))
     }
 
@@ -159,7 +169,7 @@ impl<'a, R: Render> Printer<'a, R> {
         *self.indent.last().unwrap()
     }
 
-    fn scan(&mut self, width: usize, out: Token<'a>) -> Result<(), R::Error> {
+    fn scan(&mut self, width: usize, out: Token<'a, S>) -> Result<(), R::Error> {
         self.position += width;
         if let Some((_, grp)) = self.dq.back_mut() {
             grp.tokens.push((out, width));
@@ -182,7 +192,7 @@ impl<'a, R: Render> Printer<'a, R> {
         Ok(())
     }
 
-    fn render_token(&mut self, token: Token<'a>, width: usize) -> Result<(), R::Error> {
+    fn render_token(&mut self, token: Token<'a, S>, width: usize) -> Result<(), R::Error> {
         match token {
             Token::Text(text) => self.render_text(text, width),
             Token::Break { indent } => self.render_break(indent, width),
@@ -193,7 +203,7 @@ impl<'a, R: Render> Printer<'a, R> {
         }
     }
 
-    fn render_text(&mut self, text: Cow<'a, str>, width: usize) -> Result<(), R::Error> {
+    fn render_text(&mut self, text: CowString<'a, S>, width: usize) -> Result<(), R::Error> {
         if self.pending_indent > 0 {
             self.renderer.write_spaces(self.pending_indent)?;
             self.pending_indent = 0;
@@ -224,7 +234,7 @@ impl<'a, R: Render> Printer<'a, R> {
         Ok(())
     }
 
-    fn render_begin(&mut self, group: OutGroup<'a>, width: usize) -> Result<(), R::Error> {
+    fn render_begin(&mut self, group: OutGroup<'a, S>, width: usize) -> Result<(), R::Error> {
         self.render_stack.push(if width <= self.remaining {
             RenderFrame::Fits
         } else {

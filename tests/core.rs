@@ -86,7 +86,7 @@ fn test_igroup() {
 fn test_text_overflow() {
     test_printer(
         |pp| {
-            pp.text("x".repeat(40))?;
+            pp.text_owned("x".repeat(40))?;
             pp.zero_break()?;
             pp.text("Hello,world!")
         },

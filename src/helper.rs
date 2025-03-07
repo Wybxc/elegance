@@ -1,8 +1,6 @@
-use std::borrow::Cow;
+use crate::{core::Printer, render::Render, string::CowString};
 
-use crate::{core::Printer, render::Render};
-
-impl<'a, R: Render> Printer<'a, R> {
+impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
     /// Write a text element.
     ///
     /// ```
@@ -13,10 +11,27 @@ impl<'a, R: Render> Printer<'a, R> {
     /// # Ok::<(), ()>(())
     /// ```
     #[inline]
-    pub fn text(&mut self, text: impl Into<Cow<'a, str>>) -> Result<(), R::Error> {
-        let text = text.into();
+    pub fn text(&mut self, text: &'a (impl AsRef<str> + ?Sized)) -> Result<(), R::Error> {
+        let text = text.as_ref();
         let width = text.len();
-        self.scan_text(text, width)
+        self.scan_text(CowString::Borrowed(text), width)
+    }
+
+    /// Write a text element.
+    ///
+    /// This method is similar to [`Printer::text`], but it takes an owned string.
+    ///
+    /// ```
+    /// # use elegance::Printer;
+    /// let mut pp = Printer::new(String::new(), 40);
+    /// pp.text_owned("Hello, world!".to_string())?;
+    /// assert_eq!(pp.finish()?, "Hello, world!");
+    /// # Ok::<(), ()>(())
+    /// ```
+    #[inline]
+    pub fn text_owned(&mut self, text: S) -> Result<(), R::Error> {
+        let width = text.as_ref().len();
+        self.scan_text(CowString::Owned(text), width)
     }
 
     /// Write a hard line break.

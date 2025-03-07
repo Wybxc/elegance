@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1](https://github.com/Wybxc/elegance/compare/v0.3.0...v0.3.1) - 2025-03-07
+
+### Added
+
+- update text_owned method to accept any type convertible to S
+
 ## [0.3.0](https://github.com/Wybxc/elegance/compare/v0.2.1...v0.3.0) - 2025-03-07
 
 ### Added

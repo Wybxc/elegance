@@ -1,5 +1,15 @@
 use crate::{core::Printer, render::Render, string::CowString};
 
+#[cfg(not(feature = "unicode-width"))]
+fn text_len(text: &str) -> usize {
+    text.chars().count()
+}
+
+#[cfg(feature = "unicode-width")]
+fn text_len(text: &str) -> usize {
+    unicode_width::UnicodeWidthStr::width(text)
+}
+
 impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
     /// Write a text element.
     ///
@@ -13,7 +23,7 @@ impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
     #[inline]
     pub fn text(&mut self, text: &'a (impl AsRef<str> + ?Sized)) -> Result<(), R::Error> {
         let text = text.as_ref();
-        let width = text.len();
+        let width = text_len(text);
         self.scan_text(CowString::Borrowed(text), width)
     }
 
@@ -31,7 +41,7 @@ impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
     #[inline]
     pub fn text_owned(&mut self, text: impl Into<S>) -> Result<(), R::Error> {
         let text = text.into();
-        let width = text.as_ref().len();
+        let width = text_len(text.as_ref());
         self.scan_text(CowString::Owned(text), width)
     }
 

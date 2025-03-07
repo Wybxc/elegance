@@ -9,6 +9,11 @@ categories = ["command-line-interface", "development-tools"]
 keywords = ["printing", "pretty-printing", "console"]
 
 [dependencies]
+unicode-width = { version = "0.2.0", optional = true }
+
+[features]
+default = ["unicode-width"]
+unicode-width = ["dep:unicode-width"]
 
 [dev-dependencies]
 criterion = "0.5.1"

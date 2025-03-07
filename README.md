@@ -95,6 +95,10 @@ fn main() {
 }
 ```
 
+## Features
+
+- `unicode-width`: Calculate the width of Unicode characters correctly. This feature is enabled by default.
+
 ## Differences from other libraries
 
 This crate implements an Oppen-style pretty-printing library, while the [pretty](https://docs.rs/pretty/latest/pretty/) crate follows a Walder-style approach.

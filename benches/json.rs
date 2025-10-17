@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 use elegance::{Printer, Render};
 use serde_json::Value;
 
@@ -51,7 +51,7 @@ pub fn print_json<'a, R: Render>(json: &'a Value, pp: &mut Printer<'a, R>) -> Re
 }
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    let obj: Value = black_box(
+    let obj: Value = std::hint::black_box(
         serde_json::from_reader(
             std::fs::File::open("benches/data.json").expect("failed to open data.json"),
         )

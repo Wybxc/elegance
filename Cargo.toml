@@ -4,6 +4,7 @@ version = "0.3.2"
 edition = "2021"
 description = "A pretty-printing library for Rust with a focus on speed and compactness."
 license = "Apache-2.0"
+rust-version = "1.78"
 repository = "https://github.com/Wybxc/elegance"
 categories = ["command-line-interface", "development-tools"]
 keywords = ["printing", "pretty-printing", "console"]
@@ -16,7 +17,7 @@ default = ["unicode-width"]
 unicode-width = ["dep:unicode-width"]
 
 [dev-dependencies]
-criterion = "0.5.1"
+criterion = "0.7.0"
 indoc = "2.0.5"
 serde_json = "1.0.121"
 

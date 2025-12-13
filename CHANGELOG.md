@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4](https://github.com/Wybxc/elegance/compare/v0.3.3...v0.3.4) - 2025-12-13
+
+### Added
+
+- add more tests for coverage
+
+### Fixed
+
+- update example return types in Printer methods to std::convert::Infallible
+- update error type in Render trait implementations to std::convert::Infallible
+
+### Other
+
+- update dependencies
+
 ## [0.3.3](https://github.com/Wybxc/elegance/compare/v0.3.2...v0.3.3) - 2025-10-17
 
 ### Other

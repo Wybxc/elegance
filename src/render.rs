@@ -13,7 +13,7 @@ pub trait Render {
 }
 
 impl Render for String {
-    type Error = ();
+    type Error = std::convert::Infallible;
 
     fn write_str(&mut self, s: &str) -> Result<(), Self::Error> {
         self.push_str(s);
@@ -28,7 +28,7 @@ impl Render for String {
 }
 
 impl Render for OsString {
-    type Error = ();
+    type Error = std::convert::Infallible;
 
     fn write_str(&mut self, s: &str) -> Result<(), Self::Error> {
         self.push(s);

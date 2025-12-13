@@ -1,7 +1,7 @@
 use elegance::Printer;
 
 #[track_caller]
-fn test_printer(f: impl FnOnce(&mut Printer) -> Result<(), ()>, expected: &str) {
+fn test_printer(f: impl FnOnce(&mut Printer) -> Result<(), std::convert::Infallible>, expected: &str) {
     let mut pp = Printer::new(String::new(), 40);
     f(&mut pp).unwrap();
     assert_eq!(pp.finish().unwrap(), expected);

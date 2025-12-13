@@ -18,7 +18,7 @@ impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
     /// let mut pp = Printer::new(String::new(), 40);
     /// pp.text("Hello, world!")?;
     /// assert_eq!(pp.finish()?, "Hello, world!");
-    /// # Ok::<(), ()>(())
+    /// # Ok::<(), std::convert::Infallible>(())
     /// ```
     #[inline]
     pub fn text(&mut self, text: &'a (impl AsRef<str> + ?Sized)) -> Result<(), R::Error> {
@@ -36,7 +36,7 @@ impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
     /// let mut pp = Printer::new(String::new(), 40);
     /// pp.text_owned("Hello, world!".to_string())?;
     /// assert_eq!(pp.finish()?, "Hello, world!");
-    /// # Ok::<(), ()>(())
+    /// # Ok::<(), std::convert::Infallible>(())
     /// ```
     #[inline]
     pub fn text_owned(&mut self, text: impl Into<S>) -> Result<(), R::Error> {
@@ -54,7 +54,7 @@ impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
     /// pp.hard_break()?;
     /// pp.text("world!")?;
     /// assert_eq!(pp.finish()?, "Hello,\nworld!");
-    /// # Ok::<(), ()>(())
+    /// # Ok::<(), std::convert::Infallible>(())
     /// ```
     #[inline]
     pub fn hard_break(&mut self) -> Result<(), R::Error> {
@@ -70,7 +70,7 @@ impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
     /// pp.zero_break()?;
     /// pp.text("world!")?;
     /// assert_eq!(pp.finish()?, "Hello,world!");
-    /// # Ok::<(), ()>(())
+    /// # Ok::<(), std::convert::Infallible>(())
     /// ```
     #[inline]
     pub fn zero_break(&mut self) -> Result<(), R::Error> {
@@ -86,7 +86,7 @@ impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
     /// pp.spaces(2)?;
     /// pp.text("world!")?;
     /// assert_eq!(pp.finish()?, "Hello,  world!");
-    /// # Ok::<(), ()>(())
+    /// # Ok::<(), std::convert::Infallible>(())
     /// ```
     #[inline]
     pub fn spaces(&mut self, n: usize) -> Result<(), R::Error> {
@@ -102,7 +102,7 @@ impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
     /// pp.space()?;
     /// pp.text("world!")?;
     /// assert_eq!(pp.finish()?, "Hello, world!");
-    /// # Ok::<(), ()>(())
+    /// # Ok::<(), std::convert::Infallible>(())
     /// ```
     #[inline]
     pub fn space(&mut self) -> Result<(), R::Error> {
@@ -125,7 +125,7 @@ impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
     ///     Ok(())
     /// })?;
     /// assert_eq!(pp.finish()?, "Hello,\n  world!");
-    /// # Ok::<(), ()>(())
+    /// # Ok::<(), std::convert::Infallible>(())
     /// ```
     #[inline]
     pub fn group(
@@ -156,7 +156,7 @@ impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
     ///     Ok(())
     /// })?;
     /// assert_eq!(pp.finish()?, "foo\n  Hello,\n  world!");
-    /// # Ok::<(), ()>(())
+    /// # Ok::<(), std::convert::Infallible>(())
     /// ```
     #[inline]
     pub fn cgroup(
@@ -184,7 +184,7 @@ impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
     ///     Ok(())
     /// })?;
     /// assert_eq!(pp.finish()?, "foo\n  Hello, world!");
-    /// # Ok::<(), ()>(())
+    /// # Ok::<(), std::convert::Infallible>(())
     /// ```
     #[inline]
     pub fn igroup(

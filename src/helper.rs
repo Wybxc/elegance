@@ -10,7 +10,7 @@ fn text_len(text: &str) -> usize {
     unicode_width::UnicodeWidthStr::width(text)
 }
 
-impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
+impl<'a, S: AsRef<str>, R: Render, E> Printer<'a, R, S, E> {
     /// Write a text element.
     ///
     /// ```
@@ -29,7 +29,8 @@ impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
 
     /// Write a text element.
     ///
-    /// This method is similar to [`Printer::text`], but it takes an owned string.
+    /// This method is similar to [`Printer::text`], but it takes an owned
+    /// string.
     ///
     /// ```
     /// # use elegance::Printer;

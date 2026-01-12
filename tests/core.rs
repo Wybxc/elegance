@@ -1,11 +1,19 @@
-use elegance::render::{Io, Render};
-use elegance::Printer;
-use std::cell::{Cell, RefCell};
-use std::ffi::OsString;
-use std::rc::Rc;
+use std::{
+    cell::{Cell, RefCell},
+    ffi::OsString,
+    rc::Rc,
+};
+
+use elegance::{
+    render::{Io, Render},
+    Printer,
+};
 
 #[track_caller]
-fn test_printer(f: impl FnOnce(&mut Printer) -> Result<(), std::convert::Infallible>, expected: &str) {
+fn test_printer(
+    f: impl FnOnce(&mut Printer) -> Result<(), std::convert::Infallible>,
+    expected: &str,
+) {
     let mut pp = Printer::new(String::new(), 40);
     f(&mut pp).unwrap();
     assert_eq!(pp.finish().unwrap(), expected);
@@ -192,9 +200,7 @@ impl Render for SharedRender {
 
     fn write_spaces(&mut self, n: usize) -> Result<(), Self::Error> {
         self.writes.set(self.writes.get() + 1);
-        self.buf
-            .borrow_mut()
-            .extend(std::iter::repeat(' ').take(n));
+        self.buf.borrow_mut().extend(std::iter::repeat(' ').take(n));
         Ok(())
     }
 }

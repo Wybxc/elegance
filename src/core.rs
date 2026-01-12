@@ -45,9 +45,9 @@ enum RenderFrame {
     Break { consistent: bool },
 }
 
-/// The `Printer` is a pretty printing engine. It takes a sequence of layout elements and
-/// produces a pretty printed representation of the elements.
-pub struct Printer<'a, R: Render = String, S: AsRef<str> = String> {
+/// The `Printer` is a pretty printing engine. It takes a sequence of layout
+/// elements and produces a pretty printed representation of the elements.
+pub struct Printer<'a, R: Render = String, S: AsRef<str> = String, E = ()> {
     // common
     line_width: usize,
 
@@ -61,6 +61,12 @@ pub struct Printer<'a, R: Render = String, S: AsRef<str> = String> {
     remaining: usize,
     render_stack: Vec<RenderFrame>,
     pending_indent: usize,
+
+    /// Extra context data.
+    ///
+    /// For example, this can be used to store priority information for
+    /// rendering expressions.
+    pub extra: E,
 }
 
 impl<R: Render> Printer<'_, R> {
@@ -70,17 +76,28 @@ impl<R: Render> Printer<'_, R> {
     ///
     /// If line width is not between 1 and 65536.
     pub fn new(renderer: R, line_width: usize) -> Self {
-        Self::new_with(renderer, line_width)
+        Self::new_with(renderer, line_width, ())
     }
 }
 
-impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
-    /// Create a new printer (with custom string type).
+impl<R: Render, E> Printer<'_, R, String, E> {
+    /// Create a new printer (with custom extra data).
     ///
     /// # Panics
     ///
     /// If line width is not between 1 and 65536.
-    pub fn new_with(renderer: R, line_width: usize) -> Self {
+    pub fn new_extra(renderer: R, line_width: usize, extra: E) -> Self {
+        Self::new_with(renderer, line_width, extra)
+    }
+}
+
+impl<'a, S: AsRef<str>, R: Render, E> Printer<'a, R, S, E> {
+    /// Create a new printer (with custom string type and custom extra data).
+    ///
+    /// # Panics
+    ///
+    /// If line width is not between 1 and 65536.
+    pub fn new_with(renderer: R, line_width: usize, extra: E) -> Self {
         assert!(
             line_width > 0 && line_width <= Self::MAX_WIDTH,
             "line width must be between 1 and {}",
@@ -95,6 +112,7 @@ impl<'a, S: AsRef<str>, R: Render> Printer<'a, R, S> {
             remaining: line_width,
             render_stack: Vec::new(),
             pending_indent: 0,
+            extra,
         };
         pp.scan_begin(0, false);
         pp

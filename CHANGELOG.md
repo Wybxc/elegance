@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/Wybxc/elegance/compare/v0.3.4...v0.4.0) - 2026-01-12
+
+### Added
+
+- custom extra data in printer
+
 ## [0.3.4](https://github.com/Wybxc/elegance/compare/v0.3.3...v0.3.4) - 2025-12-13
 
 ### Changed

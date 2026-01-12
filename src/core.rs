@@ -69,14 +69,14 @@ pub struct Printer<'a, R: Render = String, S: AsRef<str> = String, E = ()> {
     pub extra: E,
 }
 
-impl<R: Render> Printer<'_, R> {
+impl<R: Render, E: Default> Printer<'_, R, String, E> {
     /// Create a new printer.
     ///
     /// # Panics
     ///
     /// If line width is not between 1 and 65536.
     pub fn new(renderer: R, line_width: usize) -> Self {
-        Self::new_with(renderer, line_width, ())
+        Self::new_with(renderer, line_width, Default::default())
     }
 }
 

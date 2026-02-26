@@ -101,9 +101,9 @@ fn main() {
 
 ## Differences from other libraries
 
-This crate implements an Oppen-style pretty-printing library, while the [pretty](https://docs.rs/pretty/latest/pretty/) crate follows a Walder-style approach.
+This crate implements an Oppen-style pretty-printing library, while the [pretty](https://docs.rs/pretty/latest/pretty/) crate follows a Wadler-style approach.
 
-In Walder-style pretty-printing, documents are constructed using a composable `Doc` type and combinators. Here's an example:
+In Wadler-style pretty-printing, documents are constructed using a composable `Doc` type and combinators. Here's an example:
 
 ```rust,ignore
 impl SExp {

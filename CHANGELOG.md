@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1](https://github.com/Wybxc/elegance/compare/v0.4.0...v0.4.1) - 2026-02-26
+
+### Other
+
+- Fix typos (Walder -> Wadler) ([#10](https://github.com/Wybxc/elegance/pull/10))
+
 ## [0.4.0](https://github.com/Wybxc/elegance/compare/v0.3.4...v0.4.0) - 2026-01-12
 
 ### Added
